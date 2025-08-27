@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="yc.star.forum.dao.ArticleReplyMapper">
+    <!-- 定义表连接查询返回的结果集映射，继承⾃源配置⽂件的映射结果集 -->
+    <resultMap id="AllInfoResultMap"
+               type="yc.star.forum.model.ArticleReply" extends="BaseResultMap">
+        <!-- 扩展⽤⼾信息结果, 注意查询结果列名的前缀为 u_  -->
+        <association property="user" resultMap="yc.star.forum.dao.UserMapper.BaseResultMap"
+                     columnPrefix="u_"/>
+    </resultMap>
+    <!-- 根据帖⼦编号查询所有回复 -->
+    <select id="selectByArticleId" parameterType="java.lang.Long"
+            resultMap="AllInfoResultMap">
+        SELECT
+            u.id AS u_id,
+            u.nickname AS u_nickname,
+            u.avatarUrl AS u_avatarUrl,
+            ar.id,
+            ar.articleId,
+            ar.postUserId,
+            ar.replyId,
+            ar.replyUserId,
+            ar.content,
+            ar.likeCount,
+            ar.createTime,
+            ar.updateTime
+        FROM
+            t_article_reply ar , t_user u
+        WHERE
+            ar.postUserId = u.id
+          AND ar.articleId = #{articleId,jdbcType=BIGINT}
+          AND ar.deleteState = 0
+          AND ar.state = 0
+        ORDER BY ar.createTime DESC;
+    </select>
+</mapper>

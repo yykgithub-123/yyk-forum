@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <link rel="shortcut icon" href="/favicon.ico">
+    <title>管理员页面</title>
+    <link href="./dist/css/tabler.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="./dist/css/jquery.toast.css">
+  </head>
+  <body>
+    <div class="page">
+      <div class="page-wrapper">
+        <!-- 页面头部 -->
+        <div class="page-header d-print-none">
+          <div class="container-xl">
+            <div class="row g-2 align-items-center">
+              <div class="col">
+                <h2 class="page-title">
+                  管理员控制台
+                </h2>
+              </div>
+              <div class="col-auto ms-auto">
+                <a href="/index.html" class="btn btn-primary">
+                  返回首页
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 页面内容 -->
+        <div class="page-body">
+          <div class="container-xl">
+            <div class="row row-cards">
+              <!-- 板块管理 -->
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">板块管理</h3>
+                    <div class="card-actions">
+                      <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-add-board">
+                        添加板块
+                      </a>
+                    </div>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                      <thead>
+                        <tr>
+                          <th>板块名称</th>
+                          <th>帖子数量</th>
+                          <th>创建时间</th>
+                          <th>操作</th>
+                        </tr>
+                      </thead>
+                      <tbody id="board-list">
+                        <!-- 板块列表将通过JavaScript动态加载 -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <!-- 用户管理 -->
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">用户管理</h3>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                      <thead>
+                        <tr>
+                          <th>用户名</th>
+                          <th>昵称</th>
+                          <th>帖子数量</th>
+                          <th>状态</th>
+                          <th>注册时间</th>
+                          <th>操作</th>
+                        </tr>
+                      </thead>
+                      <tbody id="user-list">
+                        <!-- 用户列表将通过JavaScript动态加载 -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <!-- 帖子管理 -->
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">帖子管理</h3>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                      <thead>
+                        <tr>
+                          <th>标题</th>
+                          <th>作者</th>
+                          <th>所属板块</th>
+                          <th>浏览数</th>
+                          <th>回复数</th>
+                          <th>点赞数</th>
+                          <th>状态</th>
+                          <th>发布时间</th>
+                          <th>操作</th>
+                        </tr>
+                      </thead>
+                      <tbody id="article-list">
+                        <!-- 帖子列表将通过JavaScript动态加载 -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 添加板块模态框 -->
+    <div class="modal modal-blur fade" id="modal-add-board" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">添加板块</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">板块名称</label>
+              <input type="text" class="form-control" id="board-name" name="board-name">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">取消</button>
+            <button type="button" class="btn btn-primary" id="add-board-btn">添加</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 导入JS -->
+    <script src="./dist/js/jquery-3.6.3.min.js"></script>
+    <script src="./dist/js/tabler.min.js"></script>
+    <script src="./dist/js/jquery.toast.js"></script>
+    <script>
+      $(function() {
+        // 加载板块列表
+        function loadBoardList() {
+          $.ajax({
+            type: 'GET',
+            url: '/board/list',
+            success: function(response) {
+              if (response.code === 0) {
+                let html = '';
+                response.data.forEach(function(board) {
+                  html += `
+                    <tr>
+                      <td>${board.name}</td>
+                      <td>${board.articleCount}</td>
+                      <td>${new Date(board.createTime).toLocaleString()}</td>
+                      <td>
+                        <button class="btn btn-danger btn-sm delete-board" data-id="${board.id}">删除</button>
+                      </td>
+                    </tr>
+                  `;
+                });
+                $('#board-list').html(html);
+              }
+            }
+          });
+        }
+
+        // 加载用户列表
+        function loadUserList() {
+          $.ajax({
+            type: 'GET',
+            url: '/user/list',
+            success: function(response) {
+              if (response.code === 0) {
+                let html = '';
+                response.data.forEach(function(user) {
+                  html += `
+                    <tr>
+                      <td>${user.username}</td>
+                      <td>${user.nickname}</td>
+                      <td>${user.articleCount}</td>
+                      <td>${user.state === 0 ? '正常' : '禁言'}</td>
+                      <td>${new Date(user.createTime).toLocaleString()}</td>
+                      <td>
+                        ${user.state === 0 ? 
+                          `<button class="btn btn-warning btn-sm ban-user" data-id="${user.id}">禁言</button>` :
+                          `<button class="btn btn-success btn-sm unban-user" data-id="${user.id}">解除禁言</button>`
+                        }
+                        <button class="btn btn-danger btn-sm delete-user" data-id="${user.id}">删除</button>
+                      </td>
+                    </tr>
+                  `;
+                });
+                $('#user-list').html(html);
+              }
+            }
+          });
+        }
+
+        // 加载帖子列表
+        function loadArticleList() {
+          $.ajax({
+            type: 'GET',
+            url: '/article/list',
+            success: function(response) {
+              if (response.code === 0) {
+                let html = '';
+                response.data.forEach(function(article) {
+                  html += `
+                    <tr>
+                      <td>${article.title}</td>
+                      <td>${article.user.nickname}</td>
+                      <td>${article.board.name}</td>
+                      <td>${article.visitCount}</td>
+                      <td>${article.replyCount}</td>
+                      <td>${article.likeCount}</td>
+                      <td>${article.deleteState === 0 ? '正常' : '已删除'}</td>
+                      <td>${new Date(article.createTime).toLocaleString()}</td>
+                      <td>
+                        ${article.deleteState === 0 ? 
+                          `<button class="btn btn-danger btn-sm delete-article" data-id="${article.id}">删除</button>` :
+                          `<button class="btn btn-success btn-sm restore-article" data-id="${article.id}">恢复</button>`
+                        }
+                      </td>
+                    </tr>
+                  `;
+                });
+                $('#article-list').html(html);
+              }
+            }
+          });
+        }
+
+        // 初始加载
+        loadBoardList();
+        loadUserList();
+        loadArticleList();
+
+        // 添加板块
+        $('#add-board-btn').click(function() {
+          const boardName = $('#board-name').val();
+          if (!boardName) {
+            $.toast({
+              heading: '警告',
+              text: '板块名称不能为空',
+              icon: 'warning'
+            });
+            return;
+          }
+
+          $.ajax({
+            type: 'POST',
+            url: '/board/add',
+            data: { name: boardName },
+            success: function(response) {
+              if (response.code === 0) {
+                $.toast({
+                  heading: '成功',
+                  text: '添加板块成功',
+                  icon: 'success'
+                });
+                $('#modal-add-board').modal('hide');
+                $('#board-name').val('');
+                loadBoardList();
+              } else {
+                $.toast({
+                  heading: '错误',
+                  text: response.message,
+                  icon: 'error'
+                });
+              }
+            }
+          });
+        });
+
+        // 删除板块
+        $(document).on('click', '.delete-board', function() {
+          const boardId = $(this).data('id');
+          if (confirm('确定要删除这个板块吗？')) {
+            $.ajax({
+              type: 'POST',
+              url: '/board/delete',
+              data: { id: boardId },
+              success: function(response) {
+                if (response.code === 0) {
+                  $.toast({
+                    heading: '成功',
+                    text: '删除板块成功',
+                    icon: 'success'
+                  });
+                  loadBoardList();
+                } else {
+                  $.toast({
+                    heading: '错误',
+                    text: response.message,
+                    icon: 'error'
+                  });
+                }
+              }
+            });
+          }
+        });
+
+        // 禁言用户
+        $(document).on('click', '.ban-user', function() {
+          const userId = $(this).data('id');
+          if (confirm('确定要禁言这个用户吗？')) {
+            $.ajax({
+              type: 'POST',
+              url: '/user/ban',
+              data: { id: userId },
+              success: function(response) {
+                if (response.code === 0) {
+                  $.toast({
+                    heading: '成功',
+                    text: '禁言用户成功',
+                    icon: 'success'
+                  });
+                  loadUserList();
+                } else {
+                  $.toast({
+                    heading: '错误',
+                    text: response.message,
+                    icon: 'error'
+                  });
+                }
+              }
+            });
+          }
+        });
+
+        // 解除禁言
+        $(document).on('click', '.unban-user', function() {
+          const userId = $(this).data('id');
+          if (confirm('确定要解除该用户的禁言吗？')) {
+            $.ajax({
+              type: 'POST',
+              url: '/user/unban',
+              data: { id: userId },
+              success: function(response) {
+                if (response.code === 0) {
+                  $.toast({
+                    heading: '成功',
+                    text: '解除禁言成功',
+                    icon: 'success'
+                  });
+                  loadUserList();
+                } else {
+                  $.toast({
+                    heading: '错误',
+                    text: response.message,
+                    icon: 'error'
+                  });
+                }
+              }
+            });
+          }
+        });
+
+        // 删除用户
+        $(document).on('click', '.delete-user', function() {
+          const userId = $(this).data('id');
+          if (confirm('确定要删除这个用户吗？此操作不可恢复！')) {
+            $.ajax({
+              type: 'POST',
+              url: '/user/delete',
+              data: { id: userId },
+              success: function(response) {
+                if (response.code === 0) {
+                  $.toast({
+                    heading: '成功',
+                    text: '删除用户成功',
+                    icon: 'success'
+                  });
+                  loadUserList();
+                } else {
+                  $.toast({
+                    heading: '错误',
+                    text: response.message,
+                    icon: 'error'
+                  });
+                }
+              }
+            });
+          }
+        });
+
+        // 删除帖子
+        $(document).on('click', '.delete-article', function() {
+          const articleId = $(this).data('id');
+          if (confirm('确定要删除这个帖子吗？')) {
+            $.ajax({
+              type: 'POST',
+              url: '/article/delete',
+              data: { id: articleId },
+              success: function(response) {
+                if (response.code === 0) {
+                  $.toast({
+                    heading: '成功',
+                    text: '删除帖子成功',
+                    icon: 'success'
+                  });
+                  loadArticleList();
+                } else {
+                  $.toast({
+                    heading: '错误',
+                    text: response.message,
+                    icon: 'error'
+                  });
+                }
+              }
+            });
+          }
+        });
+
+        // 恢复帖子
+        $(document).on('click', '.restore-article', function() {
+          const articleId = $(this).data('id');
+          if (confirm('确定要恢复这个帖子吗？')) {
+            $.ajax({
+              type: 'POST',
+              url: '/article/restore',
+              data: { id: articleId },
+              success: function(response) {
+                if (response.code === 0) {
+                  $.toast({
+                    heading: '成功',
+                    text: '恢复帖子成功',
+                    icon: 'success'
+                  });
+                  loadArticleList();
+                } else {
+                  $.toast({
+                    heading: '错误',
+                    text: response.message,
+                    icon: 'error'
+                  });
+                }
+              }
+            });
+          }
+        });
+      });
+    </script>
+  </body>
+</html> 

@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="yc.star.forum.dao.ArticleMapper">
+    <!-- 自定义结果集的映射 -->
+    <resultMap id="AllInfoResultMap" type="yc.star.forum.model.Article" extends="ResultMapWithBLOBs">
+        <!-- 关联用户的映射 -->
+        <association property="user" resultMap="yc.star.forum.dao.UserMapper.BaseResultMap"
+                     columnPrefix="u_"/>
+        <association property="board" resultMap="yc.star.forum.dao.BoardMapper.BaseResultMap"
+                     columnPrefix="b_"/>
+    </resultMap>
+    <!-- 查询所有帖子相关信息 -->
+    <select id="selectAll" resultMap="AllInfoResultMap">
+        SELECT
+            u.id AS u_id,
+            u.nickname AS u_nickname,
+            u.avatarUrl AS u_avatarUrl,
+            a.id,
+            a.boardId,
+            a.userId,
+            a.title,
+            a.visitCount,
+            a.replyCount,
+            a.likeCount,
+            a.state,
+            a.createTime,
+            a.updateTime
+        from
+            t_article a, t_user u
+        where
+            a.userId = u.id
+          and a.deleteState = 0
+        order by a.createTime desc
+    </select>
+    <!-- 根据版块Id查询帖⼦列表以发布时间降序排列 -->
+    <select id="selectByBoardId" parameterType="java.lang.Long"
+            resultMap="AllInfoResultMap">
+        SELECT
+            u.id AS u_id,
+            u.nickname AS u_nickname,
+            u.avatarUrl AS u_avatarUrl,
+            a.id,
+            a.boardId,
+            a.userId,
+            a.title,
+            a.visitCount,
+            a.replyCount,
+            a.likeCount,
+            a.state,
+            a.createTime,
+            a.updateTime
+        from
+            t_article a, t_user u
+        where
+            a.userId = u.id
+          and a.deleteState = 0
+          AND a.boardId = #{boardId,jdbcType=BIGINT}
+        order by a.createTime desc
+    </select>
+
+    <!-- 查询帖子详情   -->
+    <select id="selectDetailById" parameterType="java.lang.Long"
+            resultMap="AllInfoResultMap">
+        SELECT
+        u.id AS u_id,
+        u.nickname AS u_nickname,
+        u.gender AS u_gender,
+        u.avatarUrl AS u_avatarUrl,
+        b.id AS b_id,
+        b.`name` AS b_name,
+        a.id,
+        a.boardId,
+        a.userId,
+        a.title,
+        a.content,
+        a.visitCount,
+        a.replyCount,
+        a.state,
+        a.deleteState,
+        a.createTime,
+        a.updateTime
+        FROM
+            t_board AS b,
+            t_article AS a,
+            t_user AS u
+        WHERE
+            a.id = #{id,jdbcType=BIGINT} AND
+            b.id = a.boardId AND
+            u.id = a.userId AND
+            b.state = 0 AND
+            b.deleteState = 0 AND
+            a.state = 0 AND
+            a.deleteState = 0
+    </select>
+
+    <!--  根据作者id查询所有帖子  -->
+    <select id="selectAllByUserId" resultMap="AllInfoResultMap" parameterType="java.lang.Long">
+        SELECT
+            b.id AS b_id,
+            b.`name` AS b_name,
+            a.id,
+            a.boardId,
+            a.userId,
+            a.title,
+            a.visitCount,
+            a.replyCount,
+            a.likeCount,
+            a.state,
+            a.createTime,
+            a.updateTime
+        FROM
+            t_article a , t_board b
+        WHERE a.boardId = b.id
+          AND a.deleteState = 0
+          AND a.userId = #{userId,jdbcType=BIGINT}
+        ORDER BY a.createTime DESC;
+    </select>
+
+    <!-- 在现有mapper中添加 -->
+    <select id="searchArticles" resultMap="AllInfoResultMap">
+        SELECT
+            u.id AS u_id,
+            u.nickname AS u_nickname,
+            u.avatarUrl AS u_avatarUrl,
+            a.id,
+            a.boardId,
+            a.userId,
+            a.title,
+            a.visitCount,
+            a.replyCount,
+            a.likeCount,
+            a.state,
+            a.createTime,
+            a.updateTime
+        FROM
+            t_article a, t_user u
+        WHERE
+            a.userId = u.id
+            AND a.deleteState = 0
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    a.title LIKE CONCAT('%', #{keyword}, '%')
+                    OR a.content LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="boardId != null">
+                AND a.boardId = #{boardId}
+            </if>
+        ORDER BY a.createTime DESC
+    </select>
+
+    <!-- 查询总记录数 -->
+    <select id="selectCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM t_article
+        WHERE deleteState = 0
+    </select>
+
+    <!-- 查询指定板块下的记录数 -->
+    <select id="selectCountByBoardId" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM t_article
+        WHERE deleteState = 0
+        AND boardId = #{boardId,jdbcType=BIGINT}
+    </select>
+
+    <!-- 分页查询所有帖子 -->
+    <select id="selectAllWithPage" resultMap="AllInfoResultMap">
+        SELECT
+            u.id AS u_id,
+            u.nickname AS u_nickname,
+            u.avatarUrl AS u_avatarUrl,
+            a.id,
+            a.boardId,
+            a.userId,
+            a.title,
+            a.visitCount,
+            a.replyCount,
+            a.likeCount,
+            a.state,
+            a.createTime,
+            a.updateTime
+        FROM
+            t_article a, t_user u
+        WHERE
+            a.userId = u.id
+            AND a.deleteState = 0
+        ORDER BY a.createTime DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 分页查询指定板块下的帖子 -->
+    <select id="selectByBoardIdWithPage" resultMap="AllInfoResultMap">
+        SELECT
+            u.id AS u_id,
+            u.nickname AS u_nickname,
+            u.avatarUrl AS u_avatarUrl,
+            a.id,
+            a.boardId,
+            a.userId,
+            a.title,
+            a.visitCount,
+            a.replyCount,
+            a.likeCount,
+            a.state,
+            a.createTime,
+            a.updateTime
+        FROM
+            t_article a, t_user u
+        WHERE
+            a.userId = u.id
+            AND a.deleteState = 0
+            AND a.boardId = #{boardId,jdbcType=BIGINT}
+        ORDER BY a.createTime DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 根据用户id分页查询帖子列表 -->
+    <select id="selectByUserIdWithPage" resultMap="AllInfoResultMap">
+        SELECT
+            u.id AS u_id,
+            u.nickname AS u_nickname,
+            u.avatarUrl AS u_avatarUrl,
+            b.id AS b_id,
+            b.name AS b_name,
+            a.id,
+            a.boardId,
+            a.userId,
+            a.title,
+            a.visitCount,
+            a.replyCount,
+            a.likeCount,
+            a.state,
+            a.createTime,
+            a.updateTime
+        FROM
+            t_article a, t_user u, t_board b
+        WHERE
+            a.userId = u.id
+          AND a.boardId = b.id
+          AND a.deleteState = 0
+          AND a.userId = #{userId}
+        ORDER BY a.createTime DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 获取所有帖子列表(包括已删除的) -->
+    <select id="selectAllArticles" resultMap="AllInfoResultMap">
+        SELECT
+            u.id AS u_id,
+            u.nickname AS u_nickname,
+            u.avatarUrl AS u_avatarUrl,
+            b.id AS b_id,
+            b.name AS b_name,
+            a.id,
+            a.boardId,
+            a.userId,
+            a.title,
+            a.visitCount,
+            a.replyCount,
+            a.likeCount,
+            a.state,
+            a.deleteState,
+            a.createTime,
+            a.updateTime
+        FROM
+            t_article a, t_user u, t_board b
+        WHERE
+            a.userId = u.id
+          AND a.boardId = b.id
+        ORDER BY a.createTime DESC
+    </select>
+</mapper>

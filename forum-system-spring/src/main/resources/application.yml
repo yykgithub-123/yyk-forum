@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: 论坛 # 配置项目名称
+  # 配置数据源
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/forum_db?characterEncoding=utf8&useSSL=false
+    # 数据库连接串
+    username: root # 数据库⽤⼾名
+    password: 1234 # 数据库密码
+    driver-class-name: com.mysql.cj.jdbc.Driver # 数据库驱动
+  mvc:
+    path-match:
+      matching-strategy: ANT_PATH_MATCHER # Springfox-Swagger兼容性配置
+  # JSON序列化配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss # ⽇期格式
+    default-property-inclusion: NON_NULL # 不为null时序列化
+
+# 自定义服务端口
+server:
+  port: 8539
+
+# ⽇志配置
+logging:
+  pattern:
+    dateformat: HH:mm:ss # 日期格式
+  level:
+    root: info # 默认⽇志级别
+    yc.star.forum: debug # 指定包的⽇志级别
+  file:
+    path: D:\log\project\forum\ # ⽇志保存⽬录
+
+# mybatis 相关配置
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml # 指定 xxxMapper.xml的扫描路径
+
+# 自定义配置项
+forum:
+  login:
+    url: sign-in.html # 登录时跳转的页面
+  index: # ⾸⻚配置节点
+    board-num: 9 # ⾸⻚中显⽰的版块个数
+
+# 文件上传配置
+# 文件上传目录(绝对路径)
+file:
+  upload:
+    dir: D:\forum\upload\  #头像保存目录
+  # 文件大小限制(5MB)
+  max-size: 5242880
+  # 允许的文件类型
+  allowed-types: image/jpeg,image/png,image/gif
+  # 访问URL前缀
+  access-path: /upload/

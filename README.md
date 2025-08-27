@@ -311,9 +311,9 @@ http://localhost:8539/actuator/health
 
 ## 📞 联系方式
 
-- **项目作者**: [Your Name]
-- **邮箱**: [your.email@example.com]
-- **GitHub**: [https://github.com/yourusername](https://github.com/yourusername)
+- **项目作者**: [YYK]
+- **邮箱**: [yyk020906@163.com]
+- **GitHub**: [https://github.com/yykgithub-123](https://github.com/yykgithub-123)
 
 ## 🙏 致谢
 
